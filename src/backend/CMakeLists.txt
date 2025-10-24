@@ -1,0 +1,1 @@
+add_library(backend image_processing_tga.cpp )
