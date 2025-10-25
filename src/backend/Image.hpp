@@ -18,7 +18,7 @@ struct Plane {
     uint8_t* data{};
     int      width{};
     int      height{};
-    int      stride{};   // bytes per row
+    int      bytes_per_row{};   // bytes per row
 };
 
 struct YCbCrImage {
@@ -28,9 +28,10 @@ struct YCbCrImage {
     Plane Y;
     Plane Cb;
     Plane Cr;         // point into storage
-    
+
     int   width{};
     int   height{};
     uint8_t bit_depth{8};
     Subsampling subsampling{Subsampling::YUV420};
+    size_t size_bytes;
 };

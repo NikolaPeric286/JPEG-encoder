@@ -14,5 +14,6 @@ static inline uint8_t clamp_u8(int v) {
 }
 
 
-void RGBToYCbCr24bit(RGBImage& input_image);
-void RGBToYCbCr24bitAndDownsample(RGBImage& input_image);
+YCbCrImage make_YCbCr420(const int &W,const int &H); 
+
+void convert_and_downsample(RGBImage& src_image, YCbCrImage& output_image);

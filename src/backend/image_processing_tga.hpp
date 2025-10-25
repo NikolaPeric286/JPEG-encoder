@@ -9,11 +9,9 @@
 #include <memory>
 #include "Image.hpp"
 
-#pragma pack(push, 1) // tells the compiler to create objects with 0 padding so that the header can be read directly from the file
+#pragma pack(push, 1) // tells the compiler to create structs with 0 padding so that the header can be read directly from the file
 
-constexpr int CYR = 19595, CYG = 38470, CYB =  7471;   // Y
-constexpr int CBR = -11059, CBG = -21709, CBB = 32768; // Cb
-constexpr int CRR = 32768, CRG = -27439, CRB = -5329;  // Cr
+
 
 struct tgaheader{
     uint8_t  idLength;
@@ -31,12 +29,8 @@ struct tgaheader{
 };
 #pragma pack(pop)
 
-static inline uint8_t clamp_u8(int v) {
-    return v < 0 ? 0 : (v > 255 ? 255 : (uint8_t)v);
-}
+
 
 RGBImage getImageContentTGA(const char* file_path);
 
-void RGBToYCbCr24bit(RGBImage& input_image);
-void RGBToYCbCr24bitAndDownsample(RGBImage& input_image);
 
