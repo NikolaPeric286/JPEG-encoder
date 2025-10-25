@@ -2,6 +2,7 @@
 #include <string>
 #include <cstdint>
 #include <vector>
+#include <fstream>
 #include "../src/backend/Image.hpp"
 #include "../src/backend/image_processing_tga.hpp"
 #include "../src/backend/ColorConversion.hpp"

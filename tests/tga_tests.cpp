@@ -167,6 +167,44 @@ TEST(ConvertDownsample, ThreeByThree_OddDims_EdgeClamp) {
     }
 }
 
+TEST(ConvertDownsample, IdentityOnFlatWhite){
+    const int W = 4, H = 4;
+
+    RGBImage src;
+    src.width = W;
+    src.height = H;
+
+    src.pixel_array.reset(new uint8_t[W*H*3]);
+
+    for (int y = 0; y < H; ++y){
+      for (int x = 0; x < W; ++x){
+        put_bgr(src.pixel_array.get(), W, x, y, 255,255,255);
+      }
+    }
+
+    YCbCrImage out = make_YCbCr420(W, H);
+    convert_and_downsample(src, out);
+
+    std::ofstream out_file("test_output_data", std::ios::binary);
+
+    out_file.write( reinterpret_cast<char*>(out.storage.get()), out.size_bytes);
+    out_file.close();
+
+    for (int y = 0; y < H; ++y){
+      for (int x = 0; x < W; ++x){
+        EXPECT_NEAR(out.Y.data[x+y*out.Y.width],255, 1);
+      }
+    }
+    
+    for (int y = 0; y < out.Cb.height; ++y){
+      for (int x = 0; x < out.Cb.width; ++x){
+        EXPECT_NEAR(out.Cb.data[x+y*out.Cb.width],128, 1);
+        EXPECT_NEAR(out.Cr.data[x+y*out.Cr.width],128, 1);
+      }
+    }
+    
+}
+
 TEST(ConvertDownsample, IdentityOnFlatGray) {
     const int W = 4, H = 4;
     RGBImage src;
