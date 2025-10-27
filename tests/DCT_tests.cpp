@@ -13,17 +13,17 @@
 
 TEST(DCT_tests, ConstBlockDC){
     constexpr int N = 8;
-    constexpr uint8_t dc_val = 100;
-    uint8_t block[N*N];
+    constexpr int8_t dc_val = 100;
+    int8_t block[N*N];
 
     for (int x = 0; x < N; ++x)
         for (int y = 0; y < N; ++y)
             block[x+y*N] = dc_val;
 
-    float output[N*N];
+    int16_t output[N*N];
     
-    DCT8x8(block, output);
-    const float expectedDC = 0.25f * alpha(0)*alpha(0) * (N*N*dc_val);
+    DCT8x8AndQuantize(block, output, Y_q_table_50);
+    const int16_t expectedDC = (0.25f * alpha(0)*alpha(0) * (N*N*dc_val))/Y_q_table_50[0];
 
 
     // the top left value should be equal to the dc value we set the image to

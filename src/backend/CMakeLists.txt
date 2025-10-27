@@ -1,1 +1,1 @@
-add_library(backend image_processing_tga.cpp ColorConversion.cpp DCT.cpp)
+add_library(backend image_processing_tga.cpp ColorConversion.cpp DCT.cpp LosslessCompression.cpp)

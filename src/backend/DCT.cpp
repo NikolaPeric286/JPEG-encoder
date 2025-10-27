@@ -17,7 +17,7 @@ const std::array<std::array<float, N>, N>& cos_table() {
 }
 
 
-void DCT8x8( const uint8_t* input, float* output){
+void DCT8x8AndQuantize( const int8_t* input, int16_t* output, const uint8_t* q_table){
     //assumes level shifted 8x8 block input
 
     const auto& C_table = cos_table();
@@ -36,7 +36,7 @@ void DCT8x8( const uint8_t* input, float* output){
                     sum += input[x+y*N]*CXU*C_table[v][y];
                 }
             }
-            output[u + v*N] = 0.25f * alpha(u)* alpha(v) *sum;
+            output[u + v*N] = (0.25f * alpha(u)* alpha(v) *sum) / q_table[u+v*N];
         }
     }
 }
