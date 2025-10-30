@@ -126,7 +126,7 @@ TEST(HuffmanACEncode, SixteenZerosThenPlus1_EmitsStuffedFF00) {
     int16_t zz[64] = {0};
     // Make first 16 ACs zero, then +1 afterwards.
     // AC indices 1..16 = zero; index 17 = +1 (i.e., 16 zeros then a nonzero)
-    zz[17] = +1;
+    zz[17] += 1;
 
     std::stringbuf outbuf(std::ios::out | std::ios::binary);
     huffmanEncodeBlock(zz, &outbuf);

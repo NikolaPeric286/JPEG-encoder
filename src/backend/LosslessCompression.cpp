@@ -112,11 +112,18 @@ void zigZagTransform( int16_t* input_array){ // this should be rewritten to use 
 
 
 
-void huffmanEncodeBlock(int16_t* input_block, std::streambuf* bit_stream){
+void huffmanEncodeBlock(int16_t* input_block, std::streambuf* bit_stream, bool block_type){
+    static uint16_t prev_dif = 0;
+
     constexpr uint8_t N = 8;
     uint32_t bit_buffer = 0;
     int bitcount = 0;
     //DC section
+
+    uint16_t diff = input_block[0] - prev_dif;
+    prev_dif = diff;
+    HuffCode dc_table[256];
+    buildHuffTable(bits_dc_luma, vals_dc_luma, 12, dc_table);
 
 
     //AC section
