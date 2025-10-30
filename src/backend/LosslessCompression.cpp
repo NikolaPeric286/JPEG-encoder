@@ -14,7 +14,29 @@ uint8_t bitlen_abs(int v) {
 
 void buildHuffTable(const uint8_t bits[16], const uint8_t* vals, int nvals, HuffCode out_code_for_symbol[256]){
 
+    for (int s = 0; s < 256; ++s) out_code_for_symbol[s] = {0, 0};
 
+    // there can be no 0 bit length
+    uint8_t val_index = 0;
+    uint16_t code = 0;                    // <= because 16 is the length not the array index which is len-1
+    for(uint8_t bit_length = 1; bit_length <= 16; bit_length++){
+        uint8_t length_count = bits[bit_length-1]; // bits[0] is the # of 1 bit long codes
+
+        for(int j = 0; j < length_count; j++){
+
+            uint8_t symbol = vals[val_index]; // we are calculating the index, cause its like a look up table so at this index of symbol value should the code be
+            val_index++;
+            out_code_for_symbol[symbol].len = bit_length;;
+            out_code_for_symbol[symbol].code = code;
+            code++; // this is where we increment the code for each code of that size
+
+        }
+        code <<= 1; //we left shift the code to make it one length longer to corispond with the next bit length
+        // the last shift will cause an overflow but it shouldnt matter
+    }
+
+    /* this is the old chatgpt code that should be deleted, i understand how it works now.
+    // init with zeros
     for (int i=0;i<256;++i){
         out_code_for_symbol[i] = {0,0}; 
     }
@@ -41,9 +63,10 @@ void buildHuffTable(const uint8_t bits[16], const uint8_t* vals, int nvals, Huff
             out_code_for_symbol[sym] = HuffCode{ static_cast<uint16_t>(c), static_cast<uint8_t>(l) };
         }
     }
+    */
 }
 
-void zigZagTransform( int16_t* input_array){
+void zigZagTransform( int16_t* input_array){ // this should be rewritten to use a precomputed index map, too many branch instructions now
     constexpr uint8_t N = 8;
     int16_t buffer_copy[N*N];
     std::memcpy(&buffer_copy, input_array, sizeof(int16_t)*N*N);

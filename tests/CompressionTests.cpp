@@ -136,3 +136,4 @@ TEST(HuffmanACEncode, SixteenZerosThenPlus1_EmitsStuffedFF00) {
     EXPECT_EQ(bytes[0], 0xFF) << "First flushed byte of ZRL code should be 0xFF.";
     EXPECT_EQ(bytes[1], 0x00) << "JPEG requires stuffing 0x00 after any 0xFF byte in entropy data.";
 }
+

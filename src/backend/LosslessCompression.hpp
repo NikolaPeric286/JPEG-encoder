@@ -4,6 +4,9 @@
 #include <memory>
 #include <iostream>
 
+static const uint8_t bits_ac_chroma[16] = {
+    0x00,0x02, 
+};
 
 // Annex K (ITU T.81) / libjpeg default AC luminance
 static const uint8_t bits_ac_luma[16] = {
