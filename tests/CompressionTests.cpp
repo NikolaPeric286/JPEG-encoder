@@ -3,6 +3,7 @@
 #include <bitset>
 #include <iomanip>
 #include <string>
+#include "../src/backend/BitBuffer.hpp"
 #include "../src/backend/LosslessCompression.hpp"
 
 static std::vector<uint8_t> bufToBytes(std::stringbuf& sb) {
@@ -15,6 +16,25 @@ static void ExpectCodeEq(const HuffCode& hc, uint16_t code, uint8_t len) {
     ASSERT_EQ(hc.code, code) << "code mismatch for length " << int(len);
 }
 
+TEST(BitLen, BitLenAbsTest){
+    EXPECT_EQ(3, bitlen_abs(5));
+    EXPECT_EQ(3, bitlen_abs(6));
+    EXPECT_EQ(4, bitlen_abs(8));
+    EXPECT_EQ(1,bitlen_abs(0));
+}
+
+TEST(InvertNeg, invert_neg){
+    uint8_t val1 = 0x05;
+    uint16_t val2 = 0x155;
+    uint8_t val3= 0xFF;
+
+    invert_neg<uint8_t>(val1, 3);
+    invert_neg<uint16_t>(val2, 9);
+    invert_neg<uint8_t>(val3, 8);
+    EXPECT_EQ( val1 , 0x02);
+    EXPECT_EQ( val2, 0xAA);
+    EXPECT_EQ( val3, 0x00);
+}
 TEST(ZigZag, test_zig_zag_order){
     constexpr uint8_t N = 8;
     int16_t test_array[N*N];
@@ -36,7 +56,6 @@ TEST(ZigZag, test_zig_zag_order){
     
     EXPECT_EQ(comparison_result, 0) << comparison_result;
 }
-
 TEST(HuffmanBuild, BuildsDefaultACLumaCanonicalCodes) {
     HuffCode table[256];
     buildHuffTable(bits_ac_luma, vals_ac_luma, 162, table);
@@ -94,11 +113,38 @@ TEST(HuffmanBuild, BuildsDefaultACLumaCanonicalCodes) {
     }
 }
 
+TEST(HuffmanDCEncode, check_dc_luma_val_in_buffer){
+    int16_t block[64];
+    block[0] = 77;
+    for(int i =1; i < 64; i++){
+        block[i] = i; 
+    }
+    BitBuffer buffer_object;
+
+    int16_t prev_diff = 12;
+    huffmanEncodeBlock(block,buffer_object,prev_diff,0);
+
+    std::cout << "bit buffer -> " << (int)(buffer_object.bit_buffer) << "\n";
+
+    int16_t new_diff = block[0] - prev_diff; // 77 - 12 = 64
+    uint8_t new_cat = bitlen_abs(new_diff); // = 7
+
+    HuffCode dc_table[256];
+    buildHuffTable(bits_dc_luma, vals_dc_luma, 12, dc_table);
+
+    ASSERT_EQ(buffer_object.byte_vector.size(),1);
+    EXPECT_EQ(buffer_object.byte_vector.at(0), 0xFD);
+    EXPECT_EQ(buffer_object.bit_buffer, 0x01);
+
+}
+
+/*
 TEST(HuffmanACEncode, AllZeros_EmitsNoBytesBecauseOnlyEOBBits) {
     int16_t zz[64] = {0};
     // DC ignored by your AC-only function; all AC are zero → trailing zeros → EOB emitted (4 bits)
     std::stringbuf outbuf(std::ios::out | std::ios::binary);
-    huffmanEncodeBlock(zz, &outbuf);
+    uint16_t diff = 0;
+    huffmanEncodeBlock(zz, &outbuf, diff, 0 );
 
     auto bytes = bufToBytes(outbuf);
     EXPECT_TRUE(bytes.empty()) << "EOB is only 4 bits; encoder should not flush a byte yet.";
@@ -112,7 +158,8 @@ TEST(HuffmanACEncode, Run2_Neg3_Emits0xF9ThenKeeps2BitsBuffered) {
     zz[3] = -3;
 
     std::stringbuf outbuf(std::ios::out | std::ios::binary);
-    huffmanEncodeBlock(zz, &outbuf);
+    uint16_t diff = 0;
+    huffmanEncodeBlock(zz, &outbuf, diff, 0);
 
     auto bytes = bufToBytes(outbuf);
     ASSERT_EQ(bytes.size(), 1u) << "Huffman(0x22) is 8 bits; value bits add 2 more but do not flush another byte.";
@@ -129,11 +176,57 @@ TEST(HuffmanACEncode, SixteenZerosThenPlus1_EmitsStuffedFF00) {
     zz[17] += 1;
 
     std::stringbuf outbuf(std::ios::out | std::ios::binary);
-    huffmanEncodeBlock(zz, &outbuf);
+    uint16_t diff = 0;
+    huffmanEncodeBlock(zz, &outbuf, diff, 0);
 
     auto bytes = bufToBytes(outbuf);
     ASSERT_GE(bytes.size(), 2u) << "ZRL (11 bits) must flush one 0xFF and stuff 0x00.";
     EXPECT_EQ(bytes[0], 0xFF) << "First flushed byte of ZRL code should be 0xFF.";
     EXPECT_EQ(bytes[1], 0x00) << "JPEG requires stuffing 0x00 after any 0xFF byte in entropy data.";
 }
+*/
 
+TEST(BitBufferTests, test_12_bit_input){
+    uint16_t input_bits = 0xAAAu;
+    uint8_t input_len = 12;
+    BitBuffer buffer_object;
+
+    buffer_object.push<uint16_t, uint8_t>(input_bits, input_len);
+
+    EXPECT_EQ(buffer_object.byte_vector.size(), 1);
+    EXPECT_EQ(buffer_object.bit_buffer, 0xAu);
+    EXPECT_EQ(buffer_object.buffer_size, 4);
+    
+}
+TEST(BitBufferTests, test_7_bit_input){
+    uint8_t input_bits = 0x55u;
+    uint8_t input_len = 7;
+    BitBuffer buffer_object;
+
+    buffer_object.push<uint8_t, uint8_t>(input_bits, input_len);
+
+    EXPECT_EQ(buffer_object.byte_vector.size(), 0);
+    EXPECT_EQ(buffer_object.bit_buffer, 0x55u);
+    EXPECT_EQ(buffer_object.buffer_size, 7);
+    
+}
+TEST(BitBufferTests, test_32_bit_input_order){
+    uint32_t input_bits = 0xFEDB7C93;
+    uint8_t input_len = 32;
+    BitBuffer buffer_object;
+
+    buffer_object.push<uint32_t, uint8_t>(input_bits, input_len);
+
+    EXPECT_EQ(buffer_object.buffer_size, 0);
+    EXPECT_EQ(buffer_object.byte_vector.at(0), 0xFEu);
+    EXPECT_EQ(buffer_object.byte_vector.at(1), 0xDBu);
+    EXPECT_EQ(buffer_object.byte_vector.at(2), 0x7Cu);
+    EXPECT_EQ(buffer_object.byte_vector.at(3), 0x93u);
+}
+TEST(BitBufferTests, test_range_exception){
+    uint16_t input_bits = 0xAAAu;
+    uint8_t input_len = 17;
+    BitBuffer buffer_object;
+
+    EXPECT_THROW( (buffer_object.push<uint16_t, uint8_t>(input_bits, input_len)) , std::out_of_range);
+}

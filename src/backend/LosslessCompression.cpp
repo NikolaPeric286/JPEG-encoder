@@ -2,6 +2,7 @@
 
 
 uint8_t bitlen_abs(int v) {
+    if (v == 0 ) return 1;
     unsigned x = (v < 0 ? -v : v);
     uint8_t n = 0; 
     while (x) {
@@ -112,22 +113,33 @@ void zigZagTransform( int16_t* input_array){ // this should be rewritten to use 
 
 
 
-void huffmanEncodeBlock(int16_t* input_block, std::streambuf* bit_stream, bool block_type){
-    static uint16_t prev_dif = 0;
-
+void huffmanEncodeBlock(int16_t* input_block, BitBuffer& bit_buffer, int16_t& prev_dif, bool block_type){
     constexpr uint8_t N = 8;
-    uint32_t bit_buffer = 0;
+    
     int bitcount = 0;
-    //DC section
 
-    uint16_t diff = input_block[0] - prev_dif;
-    prev_dif = diff;
+//DC section
+
+    // builds table 
     HuffCode dc_table[256];
-    buildHuffTable(bits_dc_luma, vals_dc_luma, 12, dc_table);
+    buildHuffTable((block_type)?bits_dc_luma:bits_dc_chroma, (block_type)?vals_dc_luma:vals_dc_chroma, 12, dc_table);
 
+    int16_t diff = input_block[0] - prev_dif;
+    prev_dif = diff;
+    std::cout << "diff -> " << diff << "\n";
+    uint8_t category = bitlen_abs(diff);
+    HuffCode encoded_dc = dc_table[category];
+    std::cout << "encoded_dc.code -> " << encoded_dc.code << "\n";
+    std::cout << "encoded_dc.len  ->" << (int)(encoded_dc.len )<< "\n";
+    bit_buffer.push<uint16_t, uint8_t>(encoded_dc.code, encoded_dc.len);
 
-    //AC section
+    if( diff < 0){
+        invert_neg(diff, category);
+    }
+    bit_buffer.push<int16_t,uint8_t>(diff,category);
 
+//AC section
+    /*
     HuffCode acTbl[256];
     buildHuffTable(bits_ac_luma, vals_ac_luma, 162, acTbl);
 
@@ -227,5 +239,7 @@ void huffmanEncodeBlock(int16_t* input_block, std::streambuf* bit_stream, bool b
             bitcount -= 8;
         }
     }
+
+    */
 
 }

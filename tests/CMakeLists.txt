@@ -1,5 +1,7 @@
 if(BUILD_TESTING)
-  add_executable(unit_tests tga_tests.cpp test_helperfunctions.cpp chroma_sampling.cpp DCT_tests.cpp CompressionTests.cpp)
+  file(GLOB source_files "*.cpp")
+
+  add_executable(unit_tests ${source_files})
   target_link_libraries(unit_tests PRIVATE backend GTest::gtest_main)
 
   include(GoogleTest)
