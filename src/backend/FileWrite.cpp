@@ -157,7 +157,7 @@ void writeImage(YCbCrImage& image, std::ostream& out_stream){
     int16_t prev_diff_Cb = 0;
     int16_t prev_diff_Cr = 0;
 
-    printf("Image Dimensions, (%d,%d)\n", image.width, image.height);
+    //printf("Image Dimensions, (%d,%d)\n", image.width, image.height);
     while(y < image.height){
         //std::cout << "y -> " << y << "\n";
         uint32_t x = 0;
@@ -175,7 +175,7 @@ void writeImage(YCbCrImage& image, std::ostream& out_stream){
 
                         if( x_b + luma_x >= image.Y.width || y_b + luma_y >= image.Y.height){
                             temp_block[x_b + 8*y_b] = 0;
-                            printf( "Padded! block-> (%d,%d)\n", x, y);
+                            //printf( "Padded! block-> (%d,%d)\n", x, y);
                         }
                         else{
                             int srcY = image.Y.height - 1 - (luma_y + y_b);
@@ -188,7 +188,7 @@ void writeImage(YCbCrImage& image, std::ostream& out_stream){
                     level_shifted_block[i] = temp_block[i] - 128;
                 }
 
-                printf( "Encoding Luma section %d in block -> (%d,%d)\n", n, luma_x, luma_y);
+                //printf( "Encoding Luma section %d in block -> (%d,%d)\n", n, luma_x, luma_y);
                 DCT8x8AndQuantize(level_shifted_block,out_block, Y_q_table_50 );
                 zigZagTransform<int16_t>(out_block);
                 huffmanEncodeBlock(out_block, buffer_object, prev_diff_Y, 0);
@@ -229,7 +229,7 @@ void writeImage(YCbCrImage& image, std::ostream& out_stream){
                 level_shifted_block[i] = temp_block[i] - 128;
             }
             
-            printf( "Encoding Cb section of block -> (%d,%d)\n", x, y);
+            //( "Encoding Cb section of block -> (%d,%d)\n", x, y);
             DCT8x8AndQuantize(level_shifted_block,out_block, C_q_table_50 );
             zigZagTransform<int16_t>(out_block);
             huffmanEncodeBlock(out_block, buffer_object, prev_diff_Cb, 1);
@@ -251,7 +251,7 @@ void writeImage(YCbCrImage& image, std::ostream& out_stream){
                 level_shifted_block[i] = temp_block[i] - 128;
             }
             
-            printf( "Encoding Cr section of block -> (%d,%d)\n", x, y);
+            //printf( "Encoding Cr section of block -> (%d,%d)\n", x, y);
             DCT8x8AndQuantize(level_shifted_block,out_block, C_q_table_50 );
             zigZagTransform<int16_t>(out_block);
             huffmanEncodeBlock(out_block, buffer_object, prev_diff_Cr, 1);
@@ -262,7 +262,7 @@ void writeImage(YCbCrImage& image, std::ostream& out_stream){
     }
     
     buffer_object.flush();
-    std::cout << "bit buffer size = " << buffer_object.byte_vector.size() << "\n";
+    //std::cout << "bit buffer size = " << buffer_object.byte_vector.size() << "\n";
     buffer_object.writeToStream(out_stream);
 
 }
