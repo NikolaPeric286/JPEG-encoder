@@ -15,6 +15,8 @@ struct BitBuffer{
     template<typename WRITE_TYPE, typename LEN_TYPE>
     void push(WRITE_TYPE write_bits, LEN_TYPE len);
 
+    void flush();
+
 
 };
 

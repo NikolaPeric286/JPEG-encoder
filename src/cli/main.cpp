@@ -5,22 +5,37 @@
 #include "../backend/image_processing_tga.hpp"
 #include "../backend/ColorConversion.hpp"
 #include "../backend/Image.hpp"
+#include "../backend/BitBuffer.hpp"
+#include "../backend/LosslessCompression.hpp"
 
 
 int main(int arc, char** argv){
 
+    std::ofstream out_file("cli_output");
 
-    RGBImage src_image = getImageContentTGA("../data/TGA_examples/ALL_WHITE.tga");
-    std::cout << "Size of source image : " << src_image.size_bytes;
+    int16_t block[64];
+    int p = 0;
+    for(int i = 0; i < 64; i++){
+        block[i] = p;
 
-    YCbCrImage out_image = make_YCbCr420(src_image.width,src_image.height);
+        if( p == 0){
+            p = 50;
+        }
+        else{
+            p = 0;
+        }
+        
+    }
+    BitBuffer buffer_object;
+    int16_t prev_diff = 0;
 
-    convert_and_downsample(src_image, out_image);
+    huffmanEncodeBlock(block, buffer_object, prev_diff, 0);
+    buffer_object.flush();
 
-    std::ofstream out_file("output_data", std::ios::binary);
+    for(auto it = buffer_object.byte_vector.begin(); it != buffer_object.byte_vector.end(); it++){
+        out_file << *it;
+    }
 
-    out_file.write( reinterpret_cast<char*>(out_image.storage.get()), out_image.size_bytes);
     out_file.close();
     
-    std::cout << "\nSize of ouput image : " << out_image.size_bytes << "\n";
 }

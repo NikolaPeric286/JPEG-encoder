@@ -138,6 +138,20 @@ TEST(HuffmanDCEncode, check_dc_luma_val_in_buffer){
 
 }
 
+TEST(HuffmanACEncode, check_ac_luma_all_zeros){
+    int16_t block[64];
+    for(int i = 0; i < 64; i++){
+        block[i] = 0;
+    }
+    BitBuffer buffer_object;
+    int16_t prev_diff = 0;
+
+    huffmanEncodeBlock(block, buffer_object, prev_diff, 0);
+    buffer_object.flush();
+    
+    
+    
+}
 /*
 TEST(HuffmanACEncode, AllZeros_EmitsNoBytesBecauseOnlyEOBBits) {
     int16_t zz[64] = {0};

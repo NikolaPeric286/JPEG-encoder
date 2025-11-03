@@ -72,42 +72,8 @@ void zigZagTransform( int16_t* input_array){ // this should be rewritten to use 
     int16_t buffer_copy[N*N];
     std::memcpy(&buffer_copy, input_array, sizeof(int16_t)*N*N);
     
-    int i = 1;
-    size_t x = 1;
-    size_t y = 0;
-    bool dir = false; // 0 is bottom left 1 is top right
-    while(!(x==N-1 && y==N-1) && i < 128){
-        //std::cout << i << " -> X: " << x << " Y: " << y << "\n";
-        input_array[i] = buffer_copy[x+y*N];
-        if(!dir){
-            if(!(x == 0 || y == N-1)){
-                x--;
-                y++;
-            }
-            else if (y!=N-1){
-                y++;
-                dir = 1;
-            }
-            else{
-                x++;
-                dir = 1;
-            }
-        }
-        else{
-            if(!(y == 0 || x == N-1)){
-                y--;
-                x++;
-            }
-            else if(x!=N-1){
-                x++;
-                dir = 0;
-            }
-            else{
-                y++;
-                dir = 0;
-            }
-        }
-        i++;
+    for(int i = 0; i < 64; i++){
+        input_array[i] = buffer_copy[zig_zag_table[i]];
     }
 }
 
@@ -143,9 +109,6 @@ void huffmanEncodeBlock(int16_t* input_block, BitBuffer& bit_buffer, int16_t& pr
     HuffCode ac_table[256];
     buildHuffTable(bits_ac_luma, vals_ac_luma, 162, ac_table);
 
-
-
-    
    
     size_t run = 0;
     int16_t val = 0;
