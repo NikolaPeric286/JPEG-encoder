@@ -139,13 +139,55 @@ void huffmanEncodeBlock(int16_t* input_block, BitBuffer& bit_buffer, int16_t& pr
     bit_buffer.push<int16_t,uint8_t>(diff,category);
 
 //AC section
-    /*
-    HuffCode acTbl[256];
-    buildHuffTable(bits_ac_luma, vals_ac_luma, 162, acTbl);
 
+    HuffCode ac_table[256];
+    buildHuffTable(bits_ac_luma, vals_ac_luma, 162, ac_table);
+
+
+
+    
+   
     size_t run = 0;
     int16_t val = 0;
-    
+
+    for( int i = 1; i < 64; i++){
+        val = input_block[i];
+
+        // increments zero run
+        if(val == 0){
+            run++;
+            continue;
+        }
+
+        while( run >= 16){
+            HuffCode zrl = ac_table[0xF0];
+            bit_buffer.push<uint16_t, uint8_t>(zrl.code, zrl.len);
+            run -= 16;
+        }
+        
+        uint16_t mag = (val<0)?-val:val;
+        uint8_t val_length = bitlen_abs(mag);
+        uint8_t symbol = (run << 4) | val_length;
+
+        HuffCode encoded_symbol = ac_table[symbol];
+
+        bit_buffer.push<uint16_t, uint8_t>(encoded_symbol.code, encoded_symbol.len);
+
+        uint8_t mag_len = bitlen_abs(mag);
+        uint16_t write_val = mag;
+        if (val < 0 ){ // flip the bits if its negative
+            invert_neg<uint16_t>(write_val, mag_len);
+        }
+        
+        bit_buffer.push<uint16_t, uint8_t>(write_val, mag_len);
+    }
+
+    if ( run > 0 ){
+        HuffCode eob = ac_table[0x00];
+        bit_buffer.push<uint16_t,uint8_t>(eob.code, eob.len);
+    }
+
+    /*
     for(int i = 1; i < 64;i++){
         val = input_block[i];
         
@@ -240,6 +282,6 @@ void huffmanEncodeBlock(int16_t* input_block, BitBuffer& bit_buffer, int16_t& pr
         }
     }
 
+    
     */
-
 }
