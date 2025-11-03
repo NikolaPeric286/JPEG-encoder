@@ -2,15 +2,13 @@
 
 
 uint8_t bitlen_abs(int v) {
-    if (v == 0 ) return 1;
+    if (v == 0) return 0;          // ✅
     unsigned x = (v < 0 ? -v : v);
-    uint8_t n = 0; 
-    while (x) {
-        x >>= 1; 
-        ++n; 
-    }
-    return n; // 0 if v==0
+    uint8_t n = 0;
+    while (x) { x >>= 1; ++n; }
+    return n;
 }
+
 
 
 void buildHuffTable(const uint8_t bits[16], const uint8_t* vals, int nvals, HuffCode out_code_for_symbol[256]){
@@ -67,15 +65,7 @@ void buildHuffTable(const uint8_t bits[16], const uint8_t* vals, int nvals, Huff
     */
 }
 
-void zigZagTransform( int16_t* input_array){ // this should be rewritten to use a precomputed index map, too many branch instructions now
-    constexpr uint8_t N = 8;
-    int16_t buffer_copy[N*N];
-    std::memcpy(&buffer_copy, input_array, sizeof(int16_t)*N*N);
-    
-    for(int i = 0; i < 64; i++){
-        input_array[i] = buffer_copy[zig_zag_table[i]];
-    }
-}
+
 
 
 
@@ -88,15 +78,15 @@ void huffmanEncodeBlock(int16_t* input_block, BitBuffer& bit_buffer, int16_t& pr
 
     // builds table 
     HuffCode dc_table[256];
-    buildHuffTable((block_type)?bits_dc_luma:bits_dc_chroma, (block_type)?vals_dc_luma:vals_dc_chroma, 12, dc_table);
+    buildHuffTable((!block_type)?bits_dc_luma:bits_dc_chroma, (!block_type)?vals_dc_luma:vals_dc_chroma, 12, dc_table);
 
     int16_t diff = input_block[0] - prev_dif;
-    prev_dif = diff;
-    std::cout << "diff -> " << diff << "\n";
+    prev_dif = input_block[0];
+    //std::cout << "diff -> " << diff << "\n";
     uint8_t category = bitlen_abs(diff);
     HuffCode encoded_dc = dc_table[category];
-    std::cout << "encoded_dc.code -> " << encoded_dc.code << "\n";
-    std::cout << "encoded_dc.len  ->" << (int)(encoded_dc.len )<< "\n";
+    //std::cout << "encoded_dc.code -> " << encoded_dc.code << "\n";
+    //std::cout << "encoded_dc.len  ->" << (int)(encoded_dc.len )<< "\n";
     bit_buffer.push<uint16_t, uint8_t>(encoded_dc.code, encoded_dc.len);
 
     if( diff < 0){
@@ -107,7 +97,7 @@ void huffmanEncodeBlock(int16_t* input_block, BitBuffer& bit_buffer, int16_t& pr
 //AC section
 
     HuffCode ac_table[256];
-    buildHuffTable(bits_ac_luma, vals_ac_luma, 162, ac_table);
+    buildHuffTable((!block_type)?bits_ac_luma:bits_ac_chroma, (!block_type)?vals_ac_luma:vals_ac_chroma, 162, ac_table);
 
    
     size_t run = 0;
@@ -135,7 +125,7 @@ void huffmanEncodeBlock(int16_t* input_block, BitBuffer& bit_buffer, int16_t& pr
         HuffCode encoded_symbol = ac_table[symbol];
 
         bit_buffer.push<uint16_t, uint8_t>(encoded_symbol.code, encoded_symbol.len);
-
+        run = 0;
         uint8_t mag_len = bitlen_abs(mag);
         uint16_t write_val = mag;
         if (val < 0 ){ // flip the bits if its negative

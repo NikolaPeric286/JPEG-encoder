@@ -21,6 +21,7 @@ struct Plane {
     int      bytes_per_row{};   // bytes per row
 };
 
+
 struct YCbCrImage {
     // Single contiguous storage to keep things cache-friendly
     std::unique_ptr<uint8_t[]> storage;

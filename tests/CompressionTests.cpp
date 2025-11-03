@@ -42,7 +42,7 @@ TEST(ZigZag, test_zig_zag_order){
         test_array[i] = i;
     }
     
-    zigZagTransform(test_array);
+    zigZagTransform<int16_t>(test_array);
 
     const int16_t expected_array[]= {   0,	1,	8,	16,	9,	2,	3,	10,
                                         17,	24,	32,	25,	18,	11,	4,	5,

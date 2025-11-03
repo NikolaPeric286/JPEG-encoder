@@ -2,7 +2,7 @@
 
 
 
-
+/*
 void BitBuffer::flush(){
     uint8_t buffer_room = 8 - buffer_size;
 
@@ -20,3 +20,10 @@ void BitBuffer::flush(){
 
 
 }
+
+void BitBuffer::writeToStream(std::ostream& out_stream){
+    for(auto it = byte_vector.begin(); it != byte_vector.end(); it++){
+        out_stream.put(static_cast<char>(*it));
+    }
+}
+*/
