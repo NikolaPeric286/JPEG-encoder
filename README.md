@@ -14,3 +14,12 @@ cd build
 cmake ..
 make
 ```
+
+#testing
+```bash
+cd ..
+unzip data.zip
+cd output
+./jpeg-encoder-cli ../data/*.tga
+gimp ../data/*.jpg
+```
