@@ -271,3 +271,29 @@ void writeEOI(std::ostream& out_stream){
     out_stream.put(static_cast<char>(0xFF));
     out_stream.put(static_cast<char>(0xD9));
 }
+
+
+void encodeRGBImage(RGBImage& rgb_image, std::ostream& out_stream){
+    YCbCrImage color_converted_image = make_YCbCr420(rgb_image.width, rgb_image.height);;
+        //std::cout << "converting and downsampling\n";
+    convert_and_downsample(rgb_image, color_converted_image);
+
+    //std::cout << "writing SOI\n";
+    writeSOI(out_stream);
+    //std::cout << "writing APP0\n";
+    writeAPP0(out_stream);
+    //std::cout << "writing quant tables\n";
+    writeQuantTables(out_stream);
+    //std::cout << "Writing SOF\n";
+    writeStartOfFrame(color_converted_image, out_stream);
+    //std::cout << "writing huff tables\n";
+    writeHuffTables(out_stream); 
+    //std::cout << "writing SOS\n";
+    writeSOS(out_stream);
+    //std::cout << "writing image\n";
+    writeImage(color_converted_image, out_stream);
+    //std::cout << "writing EOI\n";
+    writeEOI(out_stream);
+    
+
+}
