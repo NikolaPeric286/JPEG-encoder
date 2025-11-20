@@ -1,5 +1,10 @@
 #include "FileWrite.hpp"
 
+
+#if USE_CUDA
+    #include "cuda_backend/cuda_backend.hpp"
+#endif
+
 void writeSOI(std::ostream& out_stream){
     out_stream.put(static_cast<char>(0xFF)); // marker for huff table 0xFFC4
     out_stream.put(static_cast<char>(0xD8));
@@ -276,7 +281,14 @@ void writeEOI(std::ostream& out_stream){
 void encodeRGBImage(RGBImage& rgb_image, std::ostream& out_stream){
     YCbCrImage color_converted_image = make_YCbCr420(rgb_image.width, rgb_image.height);;
         //std::cout << "converting and downsampling\n";
-    convert_and_downsample(rgb_image, color_converted_image);
+
+    #if USE_CUDA
+        std::cout << "Using cuda\n";
+        cudaConvertAndDownsample(rgb_image, color_converted_image);
+    #else
+        std::cout << "Not using cuda\n";
+        convert_and_downsample(rgb_image, color_converted_image);
+    #endif
 
     //std::cout << "writing SOI\n";
     writeSOI(out_stream);

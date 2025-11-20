@@ -11,6 +11,8 @@
 #include "ColorConversion.hpp"
 #include "Image.hpp"
 
+
+
 void writeSOI(std::ostream& out_stream);
 void writeAPP0(std::ostream& out_stream);
 void writeQuantTables(std::ostream& out_stream);

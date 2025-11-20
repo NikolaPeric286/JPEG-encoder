@@ -1,4 +1,5 @@
 build
+cuda_build
 .vscode
 output
 data
